@@ -111,15 +111,17 @@ pub fn day3() {
                 count += 1;
             }
         }
-        for num in nums[i + 1].iter() {
-            let mut lower = 0;
-            if let Some(j_) = num.0.checked_sub(1) {
-                lower = j_;
-            }
-            if j >= lower + 1 && j <= num.0 + num.1 {
-                println!("num: {:?}", num);
-                prod *= num.2;
-                count += 1;
+        if i + 1 < nums.len() {
+            for num in nums[i + 1].iter() {
+                let mut lower = 0;
+                if let Some(j_) = num.0.checked_sub(1) {
+                    lower = j_;
+                }
+                if j >= lower && j <= num.0 + num.1 {
+                    println!("num: {:?}", num);
+                    prod *= num.2;
+                    count += 1;
+                }
             }
         }
         println!("i: {}, j: {}, prod: {}, count: {}", i, j, prod, count);
