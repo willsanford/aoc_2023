@@ -35,14 +35,16 @@ where
     I: Iterator<Item = [u32; 3]>,
 {
     let maxes: [u32; 3] = [12, 13, 14];
-    let i = &iter.find_map(|set| {
-        if set[0] > maxes[0] || set[1] > maxes[1] || set[2] > maxes[2] {
-            Some(1)
-        } else {
-            None
-        }
-    });
-    if i.is_none() {
+    if iter
+        .find_map(|set| {
+            if set[0] > maxes[0] || set[1] > maxes[1] || set[2] > maxes[2] {
+                Some(1)
+            } else {
+                None
+            }
+        })
+        .is_none()
+    {
         game_num
     } else {
         0
@@ -58,7 +60,6 @@ pub fn day2() {
         .split('\n')
         .into_iter()
         .map(|line| {
-            // Game 1: set1; set2; set3, ...
             let game = line.split(':').collect::<Vec<&str>>();
             #[allow(unused_variables)]
             let game_num: u32 = game[0].split(' ').collect::<Vec<&str>>()[1]

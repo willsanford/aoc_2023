@@ -1,6 +1,6 @@
 // Use the day 1 function from day1.rs
-mod day1;
-mod day2;
+mod days;
+
 fn main() {
     // take in the first argument as the day to run
     let args: Vec<String> = std::env::args().collect();
@@ -11,8 +11,9 @@ fn main() {
 
     let day = args[1].parse::<u32>().unwrap();
     match day {
-        1 => day1::day1(),
-        2 => day2::day2(),
+        1 => days::day1::day1(),
+        2 => days::day2::day2(),
+        3 => days::day3::day3(),
         _ => println!("Day {} not implemented yet", day),
     }
 }

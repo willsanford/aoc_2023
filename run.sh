@@ -1,1 +1,1 @@
-cargo watch -c -w src -x 'run 2'
+cargo watch -c -w src -x 'run 3'
