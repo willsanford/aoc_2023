@@ -1,4 +1,3 @@
-use std::cmp::{max, min};
 use std::collections::HashSet;
 use std::fs::read_to_string;
 
