@@ -1,8 +1,5 @@
 use std::{collections::HashMap, fs::read_to_string};
 
-fn valid_finish(state: &Vec<&str>) -> bool {
-    state.iter().all(|s| s.chars().nth(2).unwrap() == 'Z')
-}
 fn gcd(mut a: u64, mut b: u64) -> u64 {
     while b != 0 {
         let t = b;
