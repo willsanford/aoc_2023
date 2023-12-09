@@ -1,7 +1,8 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fs::read_to_string;
 
-#[derive(PartialEq, PartialOrd, Ord, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 enum Hand {
     HighCard([u8; 5]),
     OnePair([u8; 5]),
@@ -10,6 +11,48 @@ enum Hand {
     FullHouse([u8; 5]),
     FourOfAKind([u8; 5]),
     FiveOfAKind([u8; 5]),
+}
+
+impl PartialOrd for Hand {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Hand {
+    fn cmp(&self, other: &Self) -> Ordering {
+        // First, compare based on variant
+        let variant_order = self.variant_index().cmp(&other.variant_index());
+        if variant_order != Ordering::Equal {
+            return variant_order;
+        }
+
+        // If variants are the same, compare the slices
+        match (self, other) {
+            (Hand::HighCard(a), Hand::HighCard(b))
+            | (Hand::OnePair(a), Hand::OnePair(b))
+            | (Hand::TwoPair(a), Hand::TwoPair(b))
+            | (Hand::ThreeOfAKind(a), Hand::ThreeOfAKind(b))
+            | (Hand::FullHouse(a), Hand::FullHouse(b))
+            | (Hand::FourOfAKind(a), Hand::FourOfAKind(b))
+            | (Hand::FiveOfAKind(a), Hand::FiveOfAKind(b)) => a.cmp(b),
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl Hand {
+    fn variant_index(&self) -> u8 {
+        match self {
+            Hand::HighCard(_) => 0,
+            Hand::OnePair(_) => 1,
+            Hand::TwoPair(_) => 2,
+            Hand::ThreeOfAKind(_) => 3,
+            Hand::FullHouse(_) => 4,
+            Hand::FourOfAKind(_) => 5,
+            Hand::FiveOfAKind(_) => 6,
+        }
+    }
 }
 
 fn get_card_val(c: char) -> u8 {
@@ -25,7 +68,7 @@ fn get_card_val(c: char) -> u8 {
 
 fn get_hand(cards: &str) -> Hand {
     let s: Vec<u8> = cards.chars().map(get_card_val).collect();
-    let s_ref: [u8; 5] = [s[0], s[1], s[2], s[3], s[4]];
+    let s_slice: [u8; 5] = [s[0], s[1], s[2], s[3], s[4]];
     let mut freq_mat: HashMap<u8, u8> = s.iter().fold(HashMap::new(), |mut acc, c| {
         *acc.entry(*c).or_insert(0u8) += 1;
         acc
@@ -41,15 +84,19 @@ fn get_hand(cards: &str) -> Hand {
     freq.sort();
     if let Some(last) = freq.last_mut() {
         *last += num_jokers;
+    } else {
+        freq.push(num_jokers);
     }
+    use Hand::*;
     match freq[..] {
-        [5] => Hand::FiveOfAKind(s_ref),
-        [.., 4] => Hand::FourOfAKind(s_ref),
-        [2, 3] => Hand::FullHouse(s_ref),
-        [.., 3] => Hand::ThreeOfAKind(s_ref),
-        [.., 2, 2] => Hand::TwoPair(s_ref),
-        [.., 2] => Hand::OnePair(s_ref),
-        _ => Hand::HighCard(s_ref),
+        [5] => FiveOfAKind(s_slice),
+        [.., 4] => FourOfAKind(s_slice),
+        [2, 3] => FullHouse(s_slice),
+        [.., 3] => ThreeOfAKind(s_slice),
+        [.., 2, 2] => TwoPair(s_slice),
+        [.., 2] => OnePair(s_slice),
+        [.., 1] => HighCard(s_slice),
+        _ => unreachable!(),
     }
 }
 
@@ -71,7 +118,9 @@ pub fn day7() {
     let ans = data
         .iter()
         .enumerate()
-        .fold(0, |acc, (i, (_cards, score))| acc + (i + 1) as u64 * score);
+        .fold(0u64, |acc, (i, (_cards, score))| {
+            acc + (i + 1) as u64 * score
+        });
 
     println!("{:?}", ans);
 }
