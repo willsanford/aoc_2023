@@ -7,24 +7,24 @@ fn check_state(positions: String, groups: Vec<u32>) -> bool {
 
 fn get_possible_positions(positions: String, groups: Vec<u32>) -> Vec<usize> {
     // Check every question mark and see if it will break the groups
-    let mut current_groups: HashSet<u32> = groups.clone().iter().collect();
-    println!(
-        "{:?}",
-        positions
-            .split('.')
-            .filter(|x| x.len() > 0)
-            .collect::<Vec<&str>>()
-    );
-    positions
+
+    let mut current_groups: HashSet<u32> = groups.iter().map(|a| *a).collect();
+    let dots: Vec<usize> = positions
         .chars()
         .enumerate()
-        .filter(|(i, c)| {
-            println!("Checking {} {}", i, c);
-            // Check if we can put a # here
-            true
-        })
-        .map(|(i, c)| i)
-        .collect::<Vec<usize>>()
+        .filter(|(_, c)| c == &'.')
+        .map(|(i, _)| i)
+        .collect();
+    let mut current_state: Vec<&str> = positions
+        .split('.')
+        .filter(|x| x.len() > 0)
+        .collect::<Vec<&str>>();
+
+    println!("{:?}", dots);
+    println!("{:?}", current_state);
+    println!("{:?}", current_groups);
+
+    vec![]
 }
 
 fn get_possible(positions: String, groups: Vec<u32>) -> u32 {
