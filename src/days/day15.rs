@@ -26,15 +26,14 @@ pub fn day15() {
     let boxes: Vec<Vec<(&str, u32)>> = opps.iter().fold(
         vec![vec![]; 256],
         |mut acc, (box_label, label, add, lens)| {
-            match acc[*box_label].iter().position(|(l, _)| *l == *label) {
-                Some(ind) => {
-                    if *add {
-                        acc[*box_label][ind] = (*label, *lens);
-                    } else {
-                        acc[*box_label].remove(ind);
-                    }
+            match (acc[*box_label].iter().position(|(l, _)| *l == *label), *add) {
+                (Some(ind), true) => {
+                    acc[*box_label][ind] = (*label, *lens);
                 }
-                None => {
+                (Some(ind), false) => {
+                    acc[*box_label].remove(ind);
+                }
+                (None, _) => {
                     if *add {
                         acc[*box_label].push((*label, *lens));
                     }
