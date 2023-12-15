@@ -33,11 +33,10 @@ pub fn day15() {
                 (Some(ind), false) => {
                     acc[*box_label].remove(ind);
                 }
-                (None, _) => {
-                    if *add {
-                        acc[*box_label].push((*label, *lens));
-                    }
+                (None, true) => {
+                    acc[*box_label].push((*label, *lens));
                 }
+                _ => {}
             }
 
             acc
