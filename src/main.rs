@@ -26,6 +26,7 @@ fn main() {
         13 => days::day13::day13(),
         14 => days::day14::day14(),
         15 => days::day15::day15(),
+        16 => days::day16::day16(),
         _ => println!("Day {} not implemented yet", day),
     }
 }
