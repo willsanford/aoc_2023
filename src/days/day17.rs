@@ -1,12 +1,14 @@
-use std::collections::{BinaryHeap, HashMap};
+use pathfinding::prelude::dijkstra;
+use std::collections::HashMap;
 use std::fs::read_to_string;
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Hash, PartialOrd, Ord, PartialEq, Eq, Clone, Copy)]
 enum Dir {
     U,
     D,
     L,
     R,
+    S, // Still Direction for when we start
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -17,28 +19,57 @@ struct Space {
     bt: (i32, i32),
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-struct QState {
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+struct State {
     pos: (i32, i32),
-    dir: Dir,
-    streak: u32,
-    cost: i32,
+    last_dir: Dir,
 }
 
-impl Ord for QState {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        other.cost.cmp(&self.cost)
-    }
-}
+impl State {
+    fn successors(&self, m: &HashMap<(i32, i32), Space>) -> Vec<(State, usize)> {
+        let mut next_states: Vec<(State, usize)> = Vec::new();
 
-impl PartialOrd for QState {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        other.cost.partial_cmp(&self.cost)
+        let possible_dirs = match self.last_dir {
+            Dir::U | Dir::D => vec![Dir::L, Dir::R],
+            Dir::L | Dir::R => vec![Dir::U, Dir::D],
+            Dir::S => vec![Dir::D, Dir::R],
+        };
+
+        for d in possible_dirs {
+            // Go three clicks in any direction
+            let mut cost = 0;
+            let dir = match d {
+                Dir::U => (0, -1),
+                Dir::D => (0, 1),
+                Dir::L => (-1, 0),
+                Dir::R => (1, 0),
+                _ => unreachable!(),
+            };
+
+            for i in 1..=10 {
+                // Part 1: 1..=3
+                let next_pos = (self.pos.0 + dir.0 * i, self.pos.1 + dir.1 * i);
+                if let Some(s) = m.get(&next_pos) {
+                    cost += s.val as usize;
+                    if i >= 4 {
+                        // Part 1 no if
+                        next_states.push((
+                            State {
+                                pos: next_pos,
+                                last_dir: d,
+                            },
+                            cost,
+                        ));
+                    }
+                }
+            }
+        }
+        next_states
     }
 }
 
 pub fn day17() {
-    let filename = "data/day_17_ex.txt";
+    let filename = "data/day_17.txt";
 
     let mut spaces: HashMap<(i32, i32), Space> = HashMap::new();
     read_to_string(filename)
@@ -60,72 +91,15 @@ pub fn day17() {
             });
         });
 
-    // Find the start
+    // Find the end
     let max_x = spaces.keys().map(|(x, _)| x).max().unwrap();
     let max_y = spaces.keys().map(|(_, y)| y).max().unwrap();
-    let end = (*max_x, *max_y);
 
-    // change the first to have a distance of 0
-
-    let mut to_visit: BinaryHeap<QState> = BinaryHeap::new();
-
-    to_visit.push(QState {
+    let goal: (i32, i32) = (*max_x, *max_y);
+    let start: State = State {
         pos: (0, 0),
-        dir: Dir::D,
-        streak: 0,
-        cost: spaces.get(&(0, 0)).unwrap().val,
-    });
-
-    let mut end_state: QState = QState {
-        pos: (0, 0),
-        dir: Dir::D,
-        streak: 0,
-        cost: 0,
+        last_dir: Dir::S,
     };
-    'outer: while let Some(s) = to_visit.pop() {
-        println!("{:?}", s);
-        // Get the directions that we can travel from this node
-        let mut dirs: Vec<Dir> = match s.dir {
-            Dir::U | Dir::D => vec![Dir::L, Dir::R],
-            Dir::L | Dir::R => vec![Dir::U, Dir::D],
-        };
-        // Add the current direction if we can continue
-        if s.streak < 3 {
-            dirs.push(s.dir);
-        }
-
-        // Check if they are better than our current state
-        for dir in dirs {
-            let coord = match dir {
-                Dir::U => (s.pos.0, s.pos.1 - 1),
-                Dir::D => (s.pos.0, s.pos.1 + 1),
-                Dir::L => (s.pos.0 - 1, s.pos.1),
-                Dir::R => (s.pos.0 + 1, s.pos.1),
-            };
-            if let Some(c) = spaces.get(&coord) {
-                let new_state = QState {
-                    pos: coord,
-                    dir,
-                    streak: if dir == s.dir { s.streak + 1 } else { 1 },
-                    cost: s.cost + c.val,
-                };
-
-                if spaces.get(&coord).unwrap().dis > new_state.cost {
-                    spaces.get_mut(&coord).unwrap().dis = new_state.cost;
-                    spaces.get_mut(&coord).unwrap().bt = s.pos;
-                    to_visit.push(new_state);
-                }
-                if new_state.pos == end {
-                    end_state = new_state;
-                    break 'outer;
-                }
-            }
-        }
-    }
-    let mut current = end_state.pos;
-    while current != (0, 0) {
-        println!("{:?}", current);
-        current = spaces.get(&current).unwrap().bt;
-    }
-    println!("Part 1: {}", end_state.cost);
+    let result = dijkstra(&start, |p| p.successors(&spaces), |p| p.pos == goal);
+    println!("Result: {:?}", result.unwrap().1);
 }
