@@ -1,6 +1,8 @@
-use std::collections::HashSet;
-use std::fs::read_to_string;
+// use std::fs::read_to_string;
 
+pub fn day12() {}
+
+/*
 fn check_state(positions: String, groups: Vec<u32>) -> bool {
     positions.chars().filter(|c| c == &'#').count() == groups.iter().sum::<u32>() as usize
 }
@@ -80,3 +82,4 @@ pub fn day12() {
 
     println!("{:?}", ans);
 }
+*/
