@@ -1,5 +1,6 @@
-use std::{collections::HashMap, fs::read_to_string};
+use std::fs::read_to_string;
 
+/*
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 enum Dir {
     U,
@@ -7,6 +8,7 @@ enum Dir {
     L,
     R,
 }
+*/
 
 // https://cp-algorithms.com/geometry/area-of-simple-polygon.html
 fn shoelace_area(coords: &Vec<(i64, i64)>) -> i64 {
@@ -64,7 +66,7 @@ pub fn day18() {
 
     println!("{:?}", enclosed_area);
 }
-
+/*
 pub fn _day18() {
     let filename = "data/day_18.txt";
 
@@ -187,3 +189,4 @@ pub fn _day18() {
 
     println!("{:?}", ans + walls.len() as u32);
 }
+*/
