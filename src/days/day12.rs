@@ -1,85 +1,79 @@
-// use std::fs::read_to_string;
+use cached::proc_macro::cached;
+use std::fs::read_to_string;
 
-pub fn day12() {}
-
-/*
-fn check_state(positions: String, groups: Vec<u32>) -> bool {
-    positions.chars().filter(|c| c == &'#').count() == groups.iter().sum::<u32>() as usize
-}
-
-fn get_possible_positions(positions: String, groups: Vec<u32>) -> Vec<usize> {
-    // Check every question mark and see if it will break the groups
-
-    let mut current_groups: HashSet<u32> = groups.iter().map(|a| *a).collect();
-    let dots: Vec<usize> = positions
-        .chars()
-        .enumerate()
-        .filter(|(_, c)| c == &'.')
-        .map(|(i, _)| i)
-        .collect();
-    let mut current_state: Vec<&str> = positions
-        .split('.')
-        .filter(|x| x.len() > 0)
-        .collect::<Vec<&str>>();
-
-    println!("{:?}", dots);
-    println!("{:?}", current_state);
-    println!("{:?}", current_groups);
-
-    vec![]
-}
-
-fn get_possible(positions: String, groups: Vec<u32>) -> u32 {
-    let mut total: u32 = 0;
-    let mut to_check: Vec<String> = vec![positions.clone()];
-    let mut seen: HashSet<String> = HashSet::new();
-    seen.insert(positions.clone());
-
-    while let Some(positions) = to_check.pop() {
-        // Get the first element
-        if check_state(positions.clone(), groups.clone()) {
-            total += 1;
-            continue;
+#[cached]
+fn solve(positions: String, groups: Vec<u32>) -> u64 {
+    // Break conditions
+    if groups.len() == 0 {
+        if positions.find('#').is_some() {
+            return 0;
+        } else {
+            return 1;
         }
-
-        // Find all the possible places where a
-        let possible_positions = get_possible_positions(positions.clone(), groups.clone());
-
-        for position in possible_positions {
-            let mut new_positions = positions.clone();
-            new_positions.replace_range(position..position + 1, "#");
-            if !seen.contains(&new_positions) {
-                to_check.push(new_positions.clone());
-                seen.insert(new_positions.clone());
-            }
+    }
+    if positions.len() == 0 {
+        if groups.len() > 0 {
+            return 0;
+        } else {
+            return 1;
         }
-
-        println!("Checking {}", positions);
     }
 
-    total
+    let mut ans = 0;
+    let f: char = positions.chars().nth(0).unwrap();
+    if f == '.' || f == '?' {
+        ans += solve(positions[1..].to_string(), groups.clone());
+    }
+    if f == '#' || f == '?' {
+        if groups[0] <= positions.len() as u32
+            && positions[0..groups[0] as usize].find('.').is_none()
+            && (groups[0] == positions.len() as u32
+                || positions.chars().nth(groups[0] as usize).unwrap() != '#')
+        {
+            let next_start = groups[0] as usize + 1;
+            if next_start < positions.len() {
+                ans += solve(positions[next_start..].to_string(), groups[1..].to_vec());
+            } else {
+                ans += solve("".to_string(), groups[1..].to_vec());
+            }
+        }
+    }
+    return ans;
 }
 
 pub fn day12() {
-    let filename = "data/day_12_ex.txt";
+    let filename = "data/day_12.txt";
 
-    let ans: u32 = read_to_string(filename)
+    let ans: u64 = read_to_string(filename)
         .unwrap()
         .split('\n')
         .into_iter()
         .filter(|line| line.len() > 0)
         .map(|line| {
             let data = line.split(' ').collect::<Vec<&str>>();
-            let positions = data[0].to_string();
-            let groups = data[1]
+            let mut positions = data[0].to_string();
+            let mut groups = data[1]
                 .split(',')
                 .map(|x| x.parse::<u32>().unwrap())
                 .collect::<Vec<u32>>();
 
-            get_possible(positions, groups)
+            // Part 2
+            groups = groups
+                .iter()
+                .cycle()
+                .take(groups.len() * 5)
+                .map(|x| *x)
+                .collect();
+
+            let mut extra: Vec<String> = Vec::new();
+            for _ in 0..5 {
+                extra.push(positions.clone());
+            }
+            positions = extra.join("?");
+
+            solve(positions, groups)
         })
         .sum();
 
     println!("{:?}", ans);
 }
-*/
