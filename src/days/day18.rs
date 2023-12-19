@@ -7,20 +7,30 @@ enum Dir {
     L,
     R,
 }
+
+// https://cp-algorithms.com/geometry/area-of-simple-polygon.html
 fn shoelace_area(coords: &Vec<(i64, i64)>) -> i64 {
-    let n = coords.len();
     let mut area = 0;
 
-    for i in 0..n {
-        let (x1, y1) = coords[i];
-        let (x2, y2) = coords[(i + 1) % n];
-        area += (x1 * y2) - (x2 * y1);
-    }
+    for i in 0..coords.len() {
+        let p = if let Some(i_) = i.checked_sub(1) {
+            coords[i_]
+        } else {
+            coords[coords.len() - 1]
+        };
+        let q = coords[i];
 
-    area
+        // Add the area from the interior
+        area += (p.1 - q.1) * (p.0 + q.0);
+
+        // Add the area of the border tiles
+        area += (p.0 - q.0).abs();
+        area += (p.1 - q.1).abs();
+    }
+    area.abs() / 2 + 1
 }
 pub fn day18() {
-    let filename = "data/day_18_ex.txt";
+    let filename = "data/day_18.txt";
 
     let binding = read_to_string(filename).unwrap();
     let coords: Vec<(i64, i64)> = binding
@@ -52,16 +62,7 @@ pub fn day18() {
         .collect();
     let enclosed_area = shoelace_area(&coords);
 
-    let mut permimeter_area = coords.windows(2).fold(0, |acc, pair| {
-        let (x1, y1) = pair[0];
-        let (x2, y2) = pair[1];
-        acc + (x2 - x1).abs() + (y2 - y1).abs()
-    });
-
-    permimeter_area += (coords[0].0 - coords[coords.len() - 1].0).abs()
-        + (coords[0].1 - coords[coords.len() - 1].1).abs();
-
-    println!("{:?}", ((permimeter_area + enclosed_area) / 2).abs());
+    println!("{:?}", enclosed_area);
 }
 
 pub fn _day18() {
