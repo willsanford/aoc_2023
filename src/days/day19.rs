@@ -10,7 +10,6 @@ struct Rule {
     next: String,
 }
 
-#[derive(Debug)]
 struct Part {
     vals: [u64; 4],
 }
@@ -19,7 +18,7 @@ pub fn day19() {
     let filename = "data/day_19.txt";
 
     let data: String = read_to_string(filename).unwrap();
-    let (rules, parts) = data.split_once("\n\n").unwrap();
+    let (rules, _parts) = data.split_once("\n\n").unwrap();
 
     let rules: HashMap<String, Vec<Rule>> = rules
         .split('\n')
@@ -117,6 +116,7 @@ pub fn day19() {
     println!("Accepted: {:?}", ans);
 }
 
+/*
 pub fn _day19() {
     let filename = "data/day_19.txt";
 
@@ -212,3 +212,4 @@ pub fn _day19() {
         .sum();
     println!("Part 1: {}", ans);
 }
+*/
