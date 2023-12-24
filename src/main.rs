@@ -33,6 +33,8 @@ fn main() {
         20 => days::day20::day20(),
         21 => days::day21::day21(),
         22 => days::day22::day22(),
+        23 => days::day23::day23(),
+        24 => days::day24::day24(),
         _ => println!("Day {} not implemented yet", day),
     }
 }
