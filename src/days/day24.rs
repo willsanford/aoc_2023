@@ -12,8 +12,8 @@ struct Pos {
 }
 
 fn part_1(p1: &Pos, p2: &Pos) -> bool {
-    let mut min = 200000000000000i64;
-    let mut max = 400000000000000i64;
+    let min = 200000000000000i64;
+    let max = 400000000000000i64;
     if p1.dx * p2.dy == p2.dx * p1.dy {
         return false;
     }

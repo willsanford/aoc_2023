@@ -123,5 +123,4 @@ pub fn day22() {
         .sum();
 
     println!("Part 1: {:?}", ids.len());
-    println!("Part 2: {:?}", ans);
 }
