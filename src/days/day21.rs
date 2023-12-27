@@ -1,5 +1,100 @@
+use petgraph::algo::dijkstra;
+use petgraph::graph::UnGraph;
+use petgraph::prelude::*;
 use std::{collections::HashMap, collections::HashSet, fs::read_to_string};
 
+pub fn day21() {
+    let filename = "data/day_21.txt";
+
+    let binding = read_to_string(filename).unwrap();
+    let mut start = (0, 0);
+
+    let mut graph = UnGraph::<(), i32>::new_undirected();
+    let mut node_indexes: HashMap<(i32, i32), NodeIndex> = HashMap::new();
+
+    let m: HashMap<(i32, i32), char> = binding
+        .split('\n')
+        .filter(|line| line.len() > 0)
+        .enumerate()
+        .map(|(y, line)| {
+            line.chars()
+                .enumerate()
+                .filter(|(_, c)| *c != '#')
+                .map(|(x, c)| ((x as i32, y as i32), c))
+                .collect::<Vec<((i32, i32), char)>>()
+        })
+        .collect::<Vec<Vec<((i32, i32), char)>>>()
+        .iter()
+        .flatten()
+        .map(|x| *x)
+        .collect();
+
+    let dirs = vec![(1, 0), (-1, 0), (0, 1), (0, -1)];
+
+    for ((x, y), v) in m.clone() {
+        if v == 'S' {
+            start = (x, y);
+        }
+        if node_indexes.contains_key(&(x, y)) {
+            continue;
+        }
+        let node = graph.add_node(());
+        node_indexes.insert((x, y), node);
+    }
+
+    for ((x, y), v) in m.clone() {
+        if v != '.' {
+            println!("{:?}", v);
+        }
+        for (dx, dy) in dirs.clone() {
+            if let Some(_) = m.get(&(x + dx, y + dy)) {
+                graph.add_edge(
+                    *node_indexes.get(&(x, y)).unwrap(),
+                    *node_indexes.get(&(x + dx, y + dy)).unwrap(),
+                    1,
+                );
+            }
+        }
+    }
+
+    let mut distances = dijkstra(&graph, *node_indexes.get(&start).unwrap(), None, |e| {
+        *e.weight()
+    });
+
+    println!("{:?}", distances.len());
+    println!("{:?}", node_indexes.len());
+    distances.insert(*node_indexes.get(&start).unwrap(), 0);
+
+    let p1 = distances
+        .values()
+        .filter(|v| **v <= 64 && **v % 2 == 0)
+        .count();
+    println!("Part 1: {:?}", p1);
+
+    let max_x = *(m.iter().map(|((x, _), _)| x).max().unwrap()) + 1;
+    let n = ((26501365 - (max_x / 2)) / max_x) as usize;
+    let even_corners = distances
+        .values()
+        .filter(|v| **v % 2 == 0 && **v > 65)
+        .count();
+    let odd_corners = distances
+        .values()
+        .filter(|v| **v % 2 == 1 && **v > 65)
+        .count();
+
+    // Solution from https://github.com/villuna/aoc23/wiki/A-Geometric-solution-to-advent-of-code-2023,-day-21
+
+    let even = n * n;
+    let odd = (n + 1) * (n + 1);
+
+    let ans = odd * distances.values().filter(|v| **v % 2 == 1).count()
+        + even * distances.values().filter(|v| **v % 2 == 0).count()
+        - ((n + 1) * odd_corners)
+        + (n * even_corners);
+
+    println!("Part 2: {:?}", ans);
+}
+/*
 pub fn day21() {
     let filename = "data/day_21_ex.txt";
 
@@ -86,7 +181,6 @@ pub fn day21() {
     println!("{:?}", states.len());
 }
 
-/*
 pub fn _day21() {
     let filename = "data/day_21.txt";
 
