@@ -1,6 +1,9 @@
 use itertools::Itertools;
+use prime_factorization::Factorization;
+use std::collections::HashSet;
 use std::fs::read_to_string;
-
+use z3::ast::{Ast, Int, Real};
+use z3::{Config, Context, Solver};
 #[derive(Debug, Copy, Eq, PartialEq, Clone)]
 struct Pos {
     x: i64,
@@ -65,10 +68,43 @@ pub fn day24() {
             }
         })
         .collect();
+
+    let cfg = Config::new();
+    let ctx = Context::new(&cfg);
+    let solver = Solver::new(&ctx);
+
+    let px = Real::new_const(&ctx, "px");
+    let py = Real::new_const(&ctx, "py");
+    let pz = Real::new_const(&ctx, "pz");
+    let vx = Real::new_const(&ctx, "vx");
+    let vy = Real::new_const(&ctx, "vy");
+    let vz = Real::new_const(&ctx, "vz");
+
+    for hailstone in p.clone() {
+        let pxn = Real::from_int(&Int::from_i64(&ctx, hailstone.x));
+        let pyn = Real::from_int(&Int::from_i64(&ctx, hailstone.y));
+        let pzn = Real::from_int(&Int::from_i64(&ctx, hailstone.z));
+        let vxn = Real::from_int(&Int::from_i64(&ctx, hailstone.dx));
+        let vyn = Real::from_int(&Int::from_i64(&ctx, hailstone.dy));
+        let vzn = Real::from_int(&Int::from_i64(&ctx, hailstone.dz));
+        let tn = Real::fresh_const(&ctx, "t");
+
+        solver.assert(&(&pxn + &vxn * &tn)._eq(&(&px + &vx * &tn)));
+        solver.assert(&(&pyn + &vyn * &tn)._eq(&(&py + &vy * &tn)));
+        solver.assert(&(&pzn + &vzn * &tn)._eq(&(&pz + &vz * &tn)));
+    }
+
+    solver.check();
+    let model = solver.get_model().unwrap();
+    let x = model.get_const_interp(&px).unwrap().as_real().unwrap();
+    let y = model.get_const_interp(&py).unwrap().as_real().unwrap();
+    let z = model.get_const_interp(&pz).unwrap().as_real().unwrap();
+    println!("Part 2: {}", x.0 + y.0 + z.0);
+
     let ans = p
         .iter()
         .cartesian_product(p.clone())
         .filter(|(a, b)| **a != *b && part_1(a, b))
         .count();
-    println!("{:?}", ans / 2);
+    println!("Part 1: {:?}", ans / 2);
 }
